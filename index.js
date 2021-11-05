@@ -3,6 +3,7 @@ const express = require('express');
 const db = require("./dbConnectExec.js")
 
 const app = express();
+app.use(express.json());
 
 app.listen(5000,()=>{console.log(`app is running on port 5000`)});
 
@@ -12,6 +13,38 @@ app.get("/",(req,res)=>{res.send("API is running")});
 
 // app.post()
 // app.put()
+
+app.post("/scouts", async (req, res)=>{
+    // res.send("/scouts called");
+    
+    // console.log("request body", req.body);
+    
+    let nameFirst = req.body.nameFirst;
+    let nameLast = req.body.nameLast;
+    let email = req.body.email;
+    let password = req.body.password;
+    let organization = req.body.organization;
+
+    let emailCheckQuery = `SELECT email
+    FROM Scout
+    WHERE email = '${email}'`;
+
+    let existingUser = await db.executeQuery(emailCheckQuery);
+
+    // console.log("existingUser", existingUser);
+
+    if(existingUser[0]){return res.status(409).send("Duplicate email")};
+
+    let insertQuery = `INSERT INTO Scout (NameFirst, NameLast, Email, Password, Organization)
+    VALUES('${nameFirst}', '${nameLast}', '${email}', '${password}', '${organization}')`;
+
+    db.executeQuery(insertQuery)
+    .then(()=>{res.status(201).send()})
+    .catch((err)=>{
+        console.log("Error in POST /scouts", err)
+        res.status(500).send;
+    })
+})
 
 app.get("/players", (req,res)=>{
     db.executeQuery(`SELECT *
