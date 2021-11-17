@@ -1,13 +1,17 @@
 const express = require('express');
+const cors = require("cors");
 
 const db = require("./dbConnectExec.js");
 const jwt = require("jsonwebtoken");
 const rockwellConfig = require('./config.js');
+const auth = require("./middleware/authenticate")
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
-app.listen(5000,()=>{console.log(`app is running on port 5000`)});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT,()=>{console.log(`app is running on port ${PORT}`)});
 
 app.get("/hi",(req, res)=>{res.send("hello world")});
 
@@ -15,6 +19,43 @@ app.get("/",(req,res)=>{res.send("API is running")});
 
 // app.post()
 // app.put()
+
+
+
+app.post("/reports", auth, async (req, res)=>{
+    try{
+        let playerFK = req.body.PlayerFK;
+        let hit = req.body.Hit;
+        let power = req.body.Power;
+        let run = req.body.Run;
+        let field = req.body.Field;
+        let arm = req.body.Arm;
+
+        if(!playerFK || !hit || !power || !run || !field || !arm || !Number.isInteger(hit, power, run, field, arm)){return res.status(400).send("bad request")};
+
+        // summary.replace("'","''");
+        // console.log("summary", summary);
+        // console.log("here is the contact", req.scout);
+
+        let insertQuery = `INSERT INTO report(Hit, Power, Run, Field, Arm, PlayerFK, ScoutFK)
+        OUTPUT inserted.ReportPK, inserted.Hit, inserted.Power, inserted.Run, inserted.Field, inserted.Arm, inserted.PlayerFK
+        VALUES('${hit}','${power}','${run}','${field}','${arm}','${playerFK}','${req.scout.ScoutPK}')`;
+
+        let insertedReview = await db.executeQuery(insertQuery)
+
+        console.log("inserted review", insertedReview);
+
+        res.send("here is the response");
+    }
+    catch(err){
+        console.log("error in POST /reports", err);
+        res.status(500).send();
+    }
+})
+
+app.get("/scouts/me", auth, (req, res) =>{
+    res.send(req.scout);
+})
 
 app.post("/scouts/login", async (req, res)=>{
     // console.log('/scouts/login called', req.body);
