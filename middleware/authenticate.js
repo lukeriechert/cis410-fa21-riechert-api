@@ -30,6 +30,22 @@ const auth = async(req,res, next)=>{
         else{
             return res.status(401).send("Invalid credentials");
         }
+
+        // let reportQuery = `SELECT ReportPK, Hit, Power, Run, Field, Arm, PlayerFK, ScoutFK
+        // FROM Report
+        // WHERE ScoutFK=${scoutPK} and token = '${myToken}'`
+
+        // let returnedReports = await db.executeQuery(reportQuery);
+        // console.log("returned user", returnedReports);
+
+        // // save infor
+        // if(returnedReports[0]){
+        //     req.reports = returnedReports[0];
+        //     next();
+        // }
+        // else{
+        //     return res.status(401).send("Invalid credentials");
+        // }
     }
     catch(err){
         return res.status(401).send("Invalid credentials");

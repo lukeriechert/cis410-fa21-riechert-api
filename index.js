@@ -20,7 +20,22 @@ app.get("/",(req,res)=>{res.send("API is running")});
 // app.post()
 // app.put()
 
-
+app.get("/reports/me", auth, async(req, res)=>{
+    try{
+        console.log(req.scout);
+    let scoutFK = req.scout.ScoutPK;
+    let query = `SELECT ReportPK, Hit, Power, Run, Field, Arm, PlayerFK, ScoutFK
+    FROM Report
+    WHERE ScoutFK = ${scoutFK}`;
+    reports = await db.executeQuery(query);
+    res.send(reports)
+    }
+    catch(err){
+        console.log("error in POST /reports/me", err);
+        res.status(500).send();
+    }
+    
+})
 
 app.post("/reports", auth, async (req, res)=>{
     try{
@@ -56,6 +71,21 @@ app.post("/reports", auth, async (req, res)=>{
 app.get("/scouts/me", auth, (req, res) =>{
     res.send(req.scout);
 })
+
+app.post("/scouts/logout", auth, (req, res)=>{
+    let query = `UPDATE Scout
+    SET Token = NULL
+    WHERE ScoutPK = ${req.scout.ScoutPK}`;
+
+    db.executeQuery(query)
+    .then(()=>{res.status(200).send()})
+    .catch((err)=>{
+        console.log("error in POST /scouts/logout", err);
+        res.status(500).send();
+    })
+})
+
+
 
 app.post("/scouts/login", async (req, res)=>{
     // console.log('/scouts/login called', req.body);
